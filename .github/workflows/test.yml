@@ -1,0 +1,45 @@
+name: Test Pipeline
+
+on:
+  push:
+    branches:
+      - test
+  pull_request:
+    branches:
+      - test
+
+jobs:
+  integration-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Preuzimanje koda (Checkout)
+        uses: actions/checkout@v4
+
+      - name: Podesavanje Node.js okruzenja
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Instalacija zavisnosti
+        run: npm ci
+
+      - name: Pokretanje integracionih testova
+        run: npm run test:integration
+
+      - name: Citaj verziju iz package.json
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Povezivanje sa Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build aplikacije (Bez push-a na DockerHub)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          load: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/multi-stage-build-cicd:test-${{ env.APP_VERSION }}
