@@ -5,8 +5,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "jest",
-    "test:integration": "jest"
+    "test": "jest .unit.test.js",
+    "test:integration": "jest .integration.test.js"
   },
   "keywords": [],
   "author": "",
